@@ -153,6 +153,10 @@ namespace StarterAssets
 
 		private void Move()
 		{
+			if (_input.perspective)
+				Debug.Log(12231);
+
+
 			// set target speed based on move speed, sprint speed and if sprint is pressed
 			float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
 
@@ -236,7 +240,10 @@ namespace StarterAssets
 				}
 
 				// if we are not grounded, do not jump
-				_input.jump = false;
+				_input.jump = false; 
+
+				if (_controller.velocity.y < 0.01f && _controller.velocity.y > 0.0f)
+					_verticalVelocity = 0.0f;
 			}
 
 			// apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
