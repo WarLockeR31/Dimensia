@@ -12,7 +12,6 @@ namespace StarterAssets
 		public Vector2 look;
 		public bool jump;
 		public bool sprint;
-		public bool perspective;
 
 		[Header("Movement Settings")]
 		public bool analogMovement;
@@ -45,10 +44,7 @@ namespace StarterAssets
 			SprintInput(value.isPressed);
 		}
 
-		public void OnPerspective(InputValue value)
-		{
-			PerspectiveInput();
-		}
+		
 #endif
 
 
@@ -72,10 +68,6 @@ namespace StarterAssets
 			sprint = newSprintState;
 		}
 
-		public void PerspectiveInput()
-		{
-			perspective = !perspective;
-		}
 		
 		private void OnApplicationFocus(bool hasFocus)
 		{
