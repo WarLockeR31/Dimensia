@@ -59,6 +59,7 @@ public class GameManager : MonoBehaviour
     private GameObject player;
     private CharacterController characterController;
 
+    public GameObject Player { get { return player; } }
 
     [Header("Cameras")]
     [SerializeField]
@@ -70,7 +71,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Inputs")]
     [SerializeField]
-    private InputAction jump;
+    private InputActionReference jump;
 
 
     [Space(10), SerializeField]
@@ -147,7 +148,7 @@ public class GameManager : MonoBehaviour
             //player.transform.rotation = Quaternion.identity;
 
 
-            jump.Disable();
+            jump.action.Disable();
 
 
             camera2D.gameObject.SetActive(true);
@@ -171,7 +172,7 @@ public class GameManager : MonoBehaviour
             characterController.transform.position = hit.point;
             characterController.enabled = true;
 
-            jump.Enable();
+            jump.action.Enable();
 
             camera3D.gameObject.SetActive(true);
             camera2D.gameObject.SetActive(false);
@@ -183,6 +184,72 @@ public class GameManager : MonoBehaviour
 
     private void Transform_Platformer3D()
     {
-        Debug.Log("NETU");
+        if (curDimension == GameDimension._3D)
+        {
+            Ray ray = new Ray(new Vector3(player.transform.position.x, player.transform.position.y, anchor3D.position.z + 10), Vector3.back);
+            RaycastHit hit;
+            Debug.DrawRay(new Vector3(player.transform.position.x, player.transform.position.y, anchor3D.position.z + 10), Vector3.back * 40, Color.red, 5);
+            if (Physics.Raycast(ray, out hit, 40, groundLayer))
+            {
+                Debug.Log("52");
+                return;
+            }
+
+            characterController.enabled = false;
+            Vector3 player_relative_pos = player.transform.position - anchor3D.position;
+            characterController.transform.position = new Vector3(player_relative_pos.x + anchor2D.position.x,
+                                                                 player_relative_pos.y + anchor2D.position.y,
+                                                                 anchor2D.position.z);
+            characterController.enabled = true;
+
+            player.transform.rotation = Quaternion.Euler(0f, 90f, 0f);
+
+            camera2D.gameObject.SetActive(true);
+            camera3D.gameObject.SetActive(false);
+            curDimension = GameDimension._2D;
+        }
+        else
+        {
+            float target_x = anchor3D.position.x - anchor2D.position.x + player.transform.position.x;
+            float target_z = anchor3D.position.z - anchor2D.position.z + player.transform.position.z;
+
+            characterController.enabled = false;
+            characterController.transform.position = Platforming_FindAllowedPosition();
+            characterController.enabled = true;
+
+            camera3D.gameObject.SetActive(true);
+            camera2D.gameObject.SetActive(false);
+            curDimension = GameDimension._3D;
+        }
+    }
+
+    private Vector3 Platforming_FindAllowedPosition()
+    {
+        Vector3 startPosition = player.transform.position + anchor3D.position - anchor2D.position;
+        float minDistance = float.MaxValue;
+        float targetZ = 0;
+        float countSamePoints = 0;
+        for (float i = -20 + anchor3D.position.z; i <= 20; i += 2.5f)
+        {
+            Ray ray = new Ray(new Vector3(startPosition.x, startPosition.y, i), Vector3.down);
+            RaycastHit hit;
+            Debug.DrawRay(new Vector3(startPosition.x, startPosition.y, i), Vector3.down * 40, Color.magenta, 5);
+            if (Physics.Raycast(ray, out hit, 40, groundLayer))
+            {
+                if (hit.distance == minDistance)
+                {
+                    countSamePoints++;
+                    continue;
+                }
+                if (hit.distance < minDistance)
+                {
+                    minDistance = hit.distance;
+                    targetZ = i;
+                    countSamePoints = 0;
+                    continue;
+                }
+            }
+        }
+        return new Vector3(startPosition.x, startPosition.y, targetZ + countSamePoints * 2.5f / 2);
     }
 }
