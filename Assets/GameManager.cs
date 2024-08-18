@@ -43,6 +43,7 @@ public class GameManager : MonoBehaviour
 
     [SerializeField]
     private GameView2D allowedView2D;
+    public GameView2D AllowedView2D { get {  return allowedView2D; } }
 
 
     [Header("Dimensional Anchors")]
@@ -65,6 +66,7 @@ public class GameManager : MonoBehaviour
 
     [SerializeField]
     private Camera camera2D;
+    public Camera GetCurrentCamera() { return curDimension == GameDimension._3D ? camera3D : camera2D; }
 
     [Header("Inputs")]
     [SerializeField]
@@ -120,23 +122,21 @@ public class GameManager : MonoBehaviour
         {
             Transform_Platformer3D();
         }
-
-
-        switch (curDimension)
-        {
-            case GameDimension._3D:
-                curDimension = GameDimension._2D;
-                break;
-            case GameDimension._2D:
-                curDimension = GameDimension._3D;
-                break;
-        }
     }
 
     private void Transform_TopDown3D()
     {
         if (curDimension == GameDimension._3D)
         {
+            Ray ray = new Ray(new Vector3(player.transform.position.x, 20, player.transform.position.z), Vector3.down);
+            RaycastHit hit;
+            Debug.DrawRay(new Vector3(player.transform.position.x, 20, player.transform.position.z), Vector3.down * 40, Color.red, 5);
+            if (Physics.Raycast(ray, out hit, 40, groundLayer) && hit.point.y > player.transform.position.y)
+            {
+                Debug.Log("52");
+                return;
+            }
+
             characterController.enabled = false;
             Vector3 player_relative_pos = player.transform.position - anchor3D.position;
             characterController.transform.position = new Vector3(player_relative_pos.x + anchor2D.position.x,
@@ -152,6 +152,9 @@ public class GameManager : MonoBehaviour
 
             camera2D.gameObject.SetActive(true);
             camera3D.gameObject.SetActive(false);
+            curDimension = GameDimension._2D;
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
         }
         else
         {
@@ -162,7 +165,7 @@ public class GameManager : MonoBehaviour
             RaycastHit hit;
             if (!Physics.Raycast(ray, out hit, 40, groundLayer))
                 Debug.Log("42");
-            Debug.DrawRay(new Vector3(target_x, 20, target_z), hit.point, Color.yellow, 10000);
+            Debug.DrawRay(new Vector3(target_x, 20, target_z), Vector3.down * 40, Color.yellow, 5);
 
             characterController.enabled = false;
             characterController.transform.position = hit.point;
@@ -172,6 +175,9 @@ public class GameManager : MonoBehaviour
 
             camera3D.gameObject.SetActive(true);
             camera2D.gameObject.SetActive(false);
+            curDimension = GameDimension._3D;
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
         }
     }
 

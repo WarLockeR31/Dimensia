@@ -119,7 +119,23 @@ namespace StarterAssets
 
 		private void LateUpdate()
 		{
-			CameraRotation();
+			switch (GameManager.Instance.CurDimension)
+			{
+				case GameManager.GameDimension._3D:
+                    CameraRotation();
+					break;
+				case GameManager.GameDimension._2D:
+					if (GameManager.Instance.AllowedView2D == GameManager.GameView2D.TopDown)
+					{
+                        CursorTracking();
+					}
+					else
+					{
+						return;
+					}
+					break;
+            }
+			
 		}
 
 		private void GroundedCheck()
@@ -151,7 +167,16 @@ namespace StarterAssets
 			}
 		}
 
-		private void Move()
+		private void CursorTracking()
+		{
+            Debug.DrawRay(new Vector3(transform.position.x, transform.position.y + 1, transform.position.z), transform.TransformDirection(Vector3.forward)*4, Color.blue, 0.1f);
+            Vector3 diference = GameManager.Instance.GetCurrentCamera().ScreenToWorldPoint(new Vector3(_input.look2d.x, _input.look2d.y, 0)) - transform.position;
+            float rotate2 = Mathf.Atan2(diference.x, diference.z) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.Euler(0f, rotate2, 0f);
+        }
+
+
+        private void Move()
 		{
 			// set target speed based on move speed, sprint speed and if sprint is pressed
 			float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
@@ -191,7 +216,22 @@ namespace StarterAssets
 			if (_input.move != Vector2.zero)
 			{
 				// move
-				inputDirection = transform.right * _input.move.x + transform.forward * _input.move.y;
+				switch (GameManager.Instance.CurDimension)
+				{
+					case GameManager.GameDimension._3D:
+						inputDirection = transform.right * _input.move.x + transform.forward * _input.move.y;
+						break;
+					case GameManager.GameDimension._2D:
+                        if (GameManager.Instance.AllowedView2D == GameManager.GameView2D.TopDown)
+                        {
+                            inputDirection = Vector3.right * _input.move.x + Vector3.forward * _input.move.y;
+                        }
+                        else
+                        {
+                            inputDirection = Vector3.right * _input.move.x;
+                        }
+                        break;
+                }
 			}
 
 			// move the player
